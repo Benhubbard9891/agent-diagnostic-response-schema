@@ -16,6 +16,15 @@ Optional `circuit_breaker_state` supports resilience patterns.
 
 Compatible with any draft-2020-12 JSON Schema validator.
 
+### Continuous Integration
+
+GitHub Actions workflow (`.github/workflows/validate-schema.yml`) runs on every push/PR that touches `schemas/`:
+
+1. Validates the schema itself against the draft-2020-12 meta-schema.
+2. Validates every embedded `examples` instance against the schema.
+
+Uses AJV 8 + ajv-formats under Node 20.
+
 ## License
 
 Released as standalone reference artifact.
