@@ -1,0 +1,70 @@
+name: Validate AgentDiagnosticResponse Schema
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - 'schemas/**'
+      - '.github/workflows/validate-schema.yml'
+  pull_request:
+    branches: [main]
+    paths:
+      - 'schemas/**'
+      - '.github/workflows/validate-schema.yml'
+  workflow_dispatch:
+
+jobs:
+  validate:
+    name: Schema + Example Validation
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+
+      - name: Install AJV (draft 2020-12)
+        run: |
+          npm install --no-save ajv@8 ajv-formats@3
+
+      - name: Validate schema against meta-schema & example instance
+        run: |
+          node <<'EOF'
+          const fs = require('fs');
+          const Ajv2020 = require('ajv/dist/2020');
+          const addFormats = require('ajv-formats');
+
+          const schemaPath = 'schemas/agent-diagnostic-response/v3.json';
+          const schema = JSON.parse(fs.readFileSync(schemaPath, 'utf8'));
+
+          // 1. Validate the schema itself against the draft-2020-12 meta-schema
+          const ajvMeta = new Ajv2020({ strict: false, allErrors: true });
+          addFormats(ajvMeta);
+          const validateSchema = ajvMeta.compile(schema); // compiles only if schema is valid against meta-schema
+          console.log('✓ Schema is valid against draft-2020-12 meta-schema');
+
+          // 2. Validate the embedded example(s)
+          if (!Array.isArray(schema.examples) || schema.examples.length === 0) {
+            throw new Error('Schema must contain at least one example for validation');
+          }
+
+          const ajv = new Ajv2020({ strict: false, allErrors: true });
+          addFormats(ajv);
+          const validate = ajv.compile(schema);
+
+          schema.examples.forEach((example, i) => {
+            const valid = validate(example);
+            if (!valid) {
+              console.error(`✗ Example[${i}] failed validation:`);
+              console.error(JSON.stringify(validate.errors, null, 2));
+              process.exit(1);
+            }
+            console.log(`✓ Example[${i}] is valid against the schema`);
+          });
+
+          console.log('All validations passed.');
+          EOF
