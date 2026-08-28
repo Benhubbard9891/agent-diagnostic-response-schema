@@ -1,0 +1,181 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://open-standard.system/schemas/agent-diagnostic-response/v3.json",
+  "title": "AgentDiagnosticResponse",
+  "description": "Structured diagnostic output for autonomous agent execution. Hardened for production observability.",
+  "type": "object",
+  "additionalProperties": false,
+  "minProperties": 9,
+  "required": [
+    "analysis",
+    "root_cause",
+    "recommendation",
+    "trade_offs",
+    "next_steps",
+    "metrics",
+    "sources",
+    "cached",
+    "timestamp"
+  ],
+  "properties": {
+    "analysis": {
+      "type": "string",
+      "minLength": 10,
+      "maxLength": 4096,
+      "description": "Concise but complete diagnostic narrative."
+    },
+    "root_cause": {
+      "type": "string",
+      "minLength": 5,
+      "maxLength": 2048,
+      "description": "Identified root cause or 'UNKNOWN' if indeterminate."
+    },
+    "recommendation": {
+      "type": "string",
+      "minLength": 5,
+      "maxLength": 2048,
+      "description": "Prescriptive action to resolve or mitigate."
+    },
+    "trade_offs": {
+      "type": "array",
+      "minItems": 0,
+      "maxItems": 8,
+      "items": {
+        "type": "string",
+        "minLength": 5,
+        "maxLength": 512
+      },
+      "description": "Known trade-offs of the recommendation."
+    },
+    "next_steps": {
+      "type": "array",
+      "minItems": 0,
+      "maxItems": 8,
+      "items": {
+        "type": "string",
+        "minLength": 5,
+        "maxLength": 512
+      },
+      "description": "Ordered follow-up actions."
+    },
+    "metrics": {
+      "type": "object",
+      "additionalProperties": false,
+      "minProperties": 4,
+      "required": [
+        "complexity",
+        "success_rate",
+        "confidence",
+        "estimated_speedup"
+      ],
+      "properties": {
+        "complexity": {
+          "type": "number",
+          "minimum": 0,
+          "maximum": 100,
+          "description": "Cyclomatic or architectural complexity score."
+        },
+        "success_rate": {
+          "type": "number",
+          "minimum": 0,
+          "maximum": 1,
+          "description": "Historical success rate [0.0, 1.0]."
+        },
+        "confidence": {
+          "type": "number",
+          "minimum": 0,
+          "maximum": 1,
+          "description": "Diagnostic confidence [0.0, 1.0]."
+        },
+        "estimated_speedup": {
+          "type": "number",
+          "minimum": 0,
+          "maximum": 1000,
+          "description": "Projected performance multiplier if applied."
+        }
+      }
+    },
+    "sources": {
+      "type": "array",
+      "minItems": 1,
+      "maxItems": 16,
+      "items": {
+        "type": "string",
+        "enum": [
+          "/trace/log",
+          "/trace/span",
+          "/metric/cpu",
+          "/metric/memory",
+          "/metric/latency",
+          "/shield/event",
+          "/",
+          "/agent/owl",
+          "/agent/hawk",
+          "/agent/cell",
+          "/agent/dragon",
+          "/agent/recovery",
+          "/agent/modality",
+          "/memory/core",
+          "/memory/instruction",
+          "/genesis/shield"
+        ]
+      },
+      "description": "Canonical data sources consulted."
+    },
+    "cached": {
+      "type": "boolean",
+      "description": "True if this response was served from cache."
+    },
+    "timestamp": {
+      "type": "string",
+      "format": "date-time",
+      "description": "ISO 8601 UTC timestamp of generation."
+    },
+    "circuit_breaker_state": {
+      "type": "string",
+      "enum": [
+        "CLOSED",
+        "OPEN",
+        "HALF_OPEN",
+        "FORCED_CLOSED"
+      ],
+      "description": "Current circuit breaker disposition."
+    }
+  },
+  "patternProperties": {
+    "^_": {
+      "description": "Reserved for internal metadata. Not for external use.",
+      "type": "string"
+    }
+  },
+  "examples": [
+    {
+      "analysis": "High tail latency observed in agent routing during peak load.",
+      "root_cause": "Memory pressure triggered aggressive GC pauses in temporal cache.",
+      "recommendation": "Increase cache threshold and enable async eviction.",
+      "trade_offs": [
+        "Higher baseline memory usage",
+        "Slight consistency lag"
+      ],
+      "next_steps": [
+        "Apply threshold patch",
+        "Monitor GC pause distribution for 24h"
+      ],
+      "metrics": {
+        "complexity": 42.0,
+        "success_rate": 0.94,
+        "confidence": 0.88,
+        "estimated_speedup": 3.2
+      },
+      "sources": [
+        "/trace/log",
+        "/metric/memory",
+        "/agent/dragon",
+        "/shield/event"
+      ],
+      "cached": false,
+      "timestamp": "2026-08-27T21:25:00Z",
+      "circuit_breaker_state": "CLOSED"
+    }
+  ]
+}
